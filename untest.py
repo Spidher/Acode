@@ -9,4 +9,4 @@ def test_search():
 		for line in file:
 			hold.append(line.rstrip())
 	# Test if the search function returns the first track name
-	assert search('fireboy') == hold
+	assert search('weezer') == hold
