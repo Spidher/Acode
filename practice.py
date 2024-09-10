@@ -5,7 +5,7 @@ import requests
 def tracks(v = 'weezer', l= 10):
 	response = requests.get(f'https://itunes.apple.com/search?entity=song&limit={l}&term={v}')
 	data = response.json()
-	if __main__ == '__main__':
+	if __name__ == '__main__':
 		with open('response.txt', 'a') as resfile:
 			resfile.write(f'Track by {v} \n')
 	for info in data['results']:
