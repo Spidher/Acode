@@ -2,7 +2,7 @@ import requests
 import json
 import sys
 from practice import tracks
-tracks()
+
 def search(t):
 	if len(t) < 6:
 		sys.exit()
@@ -10,6 +10,7 @@ def search(t):
 		response = requests.get('https://itunes.apple.com/search?entity=song&limit=10&term=' + t)
 		# print(json.dumps(response.json(), indent=2))
 		data = response.json()
+		print(data)
 		hold =[]
 		for info in data['results']:
 			hold.append(info['trackName'])
@@ -20,5 +21,6 @@ def ok():
 def main():
 	search(sys.argv[1])
 	ok()
+
 if __name__ == "__main__":
 	main()
