@@ -3,7 +3,7 @@ import requests
 import csv
 import json
 def get_key():
-	with open('X_keys.csv', 'r') as file:
+	with open('keys.csv', 'r') as file:
 		reader = csv.DictReader(file)
 		for row in reader:
 			if row['name'] =='bearer_token' :
