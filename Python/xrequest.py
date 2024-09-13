@@ -5,7 +5,7 @@ import csv
 import json
 import pytz
 from datetime import datetime
-
+response = None
 post_url = 'https://api.twitter.com/2/tweets'
 param = {
   'user.fields': 'created_at,description,location,protected,public_metrics,url,verified'
@@ -37,7 +37,9 @@ def user_lookup(user_name):
   response = requests.get(lookup_url, headers=headers, params=param)
   if response.status_code == 200:
     print("X Query sent, response pkg unpacked")
-    return json.dumps(response.json(), indent=2)
+     
+    return mani_response(response.json())
+    
   else:
     print(f"Failed to fetch data: {response.status_code} - {response.text}")
 
@@ -49,8 +51,8 @@ def post_tweet(text):
   data = {
     'text': text
   }
-
-  response = requests.post(post_url, json=data, auth = authenticate())
+  auth = authenticate()
+  response = requests.post(post_url, auth= auth , json=data)
 
   if response.status_code == 201:
     print("Tweet posted successfully!")
@@ -63,7 +65,8 @@ def fselector():
   if len(sys.argv[1:3]) == 2	:
     if sys.argv[1] == 'ul' or sys.argv[1] == 't':
       if sys.argv[1] == 'ul':
-        user_lookup(sys.argv[2])
+      	response = user_lookup(sys.argv[2])
+      	print(response)
       else:
         post_tweet(sys.argv[2])
     else:
@@ -89,9 +92,42 @@ def fselector():
     
     sys.exit()
 
+
+
+def mani_response(server_response):
+  key_mapping = {
+    'followers_count': 'Followers',
+    'following_count': 'Following',
+    'tweet_count': 'Tweets',
+    'like_count': 'Likes'
+  }
+  response = server_response
+  public_metrics = response['data']['public_metrics'].get('public_metrics', {})
+  Data = response['data']
+  Date, Time = (Data['created_at']).split('T')
+  Data.pop('created_at')
+  Data.update({'Date': Date})
+  Data.update({'Time': Time[:8]})
+  updated_public_metrics = {key_mapping.get(key, key): value for key, value in public_metrics.items()}
+  key_mapping_Data = {
+    'id': 'UserID',
+    'username': 'Username',
+    'name': 'Full Name',
+    'created_at': 'Account Created Time',
+    'description': 'Bio',
+    'location': 'Location',
+    'verified': 'Verification Status'
+  }
+  updated_Data = {key_mapping_Data.get(key, key): value for key, value in Data.items() if key != 'public_metrics'}
+  updated_Data['public_metrics'] = updated_public_metrics
+  response['data'] = updated_Data
+  return response
+
+
+
+
 def main():
   fetch_auth_param()
   fselector()
-
 if __name__ == '__main__':
   main()
