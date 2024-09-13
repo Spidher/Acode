@@ -31,7 +31,7 @@ def gen_time():
   timestamp = int(utc_now.timestamp())
   return str(timestamp)
 
-def user_lookup(user_name=sys.argv[2]):
+def user_lookup(user_name):
   lookup_url = f'https://api.twitter.com/2/users/by/username/{user_name}'
   headers = {'Authorization': f"Bearer {Auth_param['bearer_token']}"}
   response = requests.get(lookup_url, headers=headers, params=param)
@@ -41,7 +41,7 @@ def user_lookup(user_name=sys.argv[2]):
   else:
     print(f"Failed to fetch data: {response.status_code} - {response.text}")
 
-def post_tweet(text=sys.argv[2]):
+def post_tweet(text):
   headers = {
     'Authorization': f"Bearer {Auth_param['bearer_token']}",
     'Content-Type': 'application/json'
@@ -60,38 +60,33 @@ def post_tweet(text=sys.argv[2]):
     return None
 
 def fselector():
-  if sys.argv[1:3]:
+  if len(sys.argv[1:3]) == 2	:
     if sys.argv[1] == 'ul' or sys.argv[1] == 't':
       if sys.argv[1] == 'ul':
-        user_lookup()
+        user_lookup(sys.argv[2])
       else:
-        post_tweet()
+        post_tweet(sys.argv[2])
     else:
-      print(''' enter *ul* to run x user look up
-
-      *t* to post a tweet
-
-      e.g python xrequests.py ul <username> N:B do not add the *@* symbol
-
-      e.g2 python xrequest.py t *Tweet text*
-      -- text must be put in quotations (" ") ''')
-      sys.exit()
+      print(''' Enter *ul* to perform a user lookup
+      
+      Enter *t* to post a tweet
+      
+      Examples:
+      python xrequests.py ul "username"  # Do not include the '@' symbol
+      python xrequests.py t "Tweet text"  # Enclose tweet text in quotes''')
   else:
     print('''
-    specify task after file name
-
-    supported syntax -- python filename.py <action> <content>
-
-    enter *ul* to run x user look up
-
-    *t* to post a tweet
-
-    e.g python xrequests.py ul <username> N:B do not add the *@* symbol
-
-    e.g2 python xrequest.py t *Tweet text*
-    -- text must be put in quotations (" ")
-
+    Usage: python filename.py <action> <content>
+    
+    <Action> options:
+    ul  -  Perform a user lookup (do not include the '@' symbol in the username).
+    t   -  Post a tweet with the specified text.
+    
+    Examples:
+    python xrequests.py ul username
+    python xrequests.py t "Your tweet text here"  # Enclose tweet text in quotes
     ''')
+    
     sys.exit()
 
 def main():
