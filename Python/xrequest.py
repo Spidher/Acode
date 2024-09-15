@@ -6,7 +6,7 @@ import json
 
 
 post_url = 'https://api.twitter.com/2/tweets'
-param = {
+ul_param = {
   'user.fields': 'created_at,description,location,protected,public_metrics,url,verified'
 }
 Auth_param = {}
@@ -27,7 +27,7 @@ def authenticate():
 def user_lookup(user_name):
   lookup_url = f'https://api.twitter.com/2/users/by/username/{user_name}'
   headers = {'Authorization': f"Bearer {Auth_param['bearer_token']}"}
-  response = requests.get(lookup_url, headers=headers, params=param)
+  response = requests.get(lookup_url, headers=headers, params=ul_param)
   if response.status_code == 200:
 	  return ul_response(response.json())
     
@@ -52,30 +52,39 @@ def post_tweet(text):
 
 def fselector():
   if len(sys.argv[1:3]) == 2:
-    if sys.argv[1] == 'ul' or sys.argv[1] == 't':
+    if sys.argv[1] == 'ul' or sys.argv[1] == 'p':
       if sys.argv[1] == 'ul':
         user_lookup(sys.argv[2])
       else:
         post_tweet(sys.argv[2])
+    elif sys.argv[1] == 'd':
+      print(post_delete(sys.argv[2]))
     else:
       print(''' Enter *ul* to perform a user lookup
       
-      Enter *t* to post a tweet
+      Enter *p* to post a Tweet
+      
+      Enter *d* to delete followed by the tweet ID
       
       Examples:
       python xrequests.py ul "username"  # Do not include the '@' symbol
-      python xrequests.py t "Tweet text"  # Enclose tweet text in quotes''')
+      python xrequests.py p "Tweet text"  # Enclose tweet text in quotes
+      python xrequests.py ul "ID" 
+      ''')
+      
   else:
     print('''
     Usage: python filename.py <action> <content>
     
     <Action> options:
     ul  -  Perform a user lookup (do not include the '@' symbol in the username).
-    t   -  Post a tweet with the specified text.
+    p   -  Post a tweet with the specified text.
     
+    d   - delete a tweet with specified ID
     Examples:
     python xrequests.py ul username
     python xrequests.py t "Your tweet text here"  # Enclose tweet text in quotes
+    python xrequests.py d ID
     ''')
     
     sys.exit()
@@ -139,7 +148,7 @@ def ul_outsave(response):
           print(f'{key}: {value}')
   else:
     print("Error: 'data' field is missing, empty, or not a dictionary in the response.")
-    print(response)
+    print(response.text)
 
 def post_outsave(response):
   if 'data' in response:
@@ -149,12 +158,32 @@ def post_outsave(response):
       writer = csv.DictWriter(file, fieldnames = header)
       writer.writeheader()
       for key, value in (response['data']).items():
-        writer.writerow({'Fields': key, 'Data': value})
-        print(f'{key}:{value}')
+        if key == 'edit_history_tweet_ids':
+          for data in value:
+            writer.writerow({'Fields': key, 'Data': data})
+            print(f'{key}:{data}')
+        else:
+          writer.writerow({'Fields': key, 'Data': value})
+          print(f'{key}:{value}')
   else:
-    print(response)
+    print(response.text)
 
 
+def post_delete(id):
+  d_url = f'https://api.twitter.com/2/tweets/{id}'
+  response = requests.delete(d_url, auth = authenticate())
+  if response.status_code == 201 or response.status_code == 200:
+    if 'data' in response:
+      for key,value in response['data']:
+        result = f'Post deleted, server response\n{key,value}'
+        print(result)
+      return result
+  else:
+    print(f'Failed to delete tweet: {response.status_code} - {response.text}')
+    return f'Failed to delete tweet: {response.status_code} - {response.text}'
+    
+  
+  
 def main():
   fetch_auth_param()
   fselector()
