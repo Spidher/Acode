@@ -1,3 +1,4 @@
+*.csv
 /sdcard/Acode/Python/keys.csv
 /sdcard/Acode/Python/tests.py
 /sdcard/Acode/Python/__pycache__
